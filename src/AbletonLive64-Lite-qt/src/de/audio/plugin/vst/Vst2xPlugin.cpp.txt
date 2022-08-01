@@ -1,0 +1,736 @@
+#include "Vst2xPlugin.hpp"
+
+#include <de/FileSystem.hpp>
+
+namespace de {
+namespace audio {
+
+// using namespace de::audio;
+
+// For Window64 mostly, should also work on Linux64 emulating windows using wine or such.
+
+#ifndef UNICODE
+#define UNICODE
+#endif
+
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+
+#ifdef _WIN32_WINNT
+#undef _WIN32_WINNT
+#endif
+#define _WIN32_WINNT 0x0600 // CreateEventEx() needs atleast this API version = WinXP or so.
+
+#include <windows.h>
+#include <synchapi.h>
+#include <process.h>
+#include <mmdeviceapi.h>
+#include <audioclient.h>
+//#include <commdlg.h>
+//#include <QFileDialog>
+//#define ASSERT_THROW(c,e) if(!(c)) { throw std::runtime_error(e); }
+//#define CLOSE_HANDLE(x)   if((x)) { CloseHandle(x); x = nullptr; }
+//#define RELEASE(x)        if((x)) { (x)->Release(); x = nullptr; }
+/*
+ComInit::ComInit()  { CoInitializeEx(nullptr, COINIT_MULTITHREADED); }
+ComInit::~ComInit() { CoUninitialize(); }
+*/
+Vst2xPlugin::Vst2xPlugin()
+   : m_id( -1 )
+   , m_dllHandle( 0 ) // HMODULE on Windows
+   , m_editorWindow( nullptr )
+   , m_inputSignal( nullptr )
+   //, m_volume( 100 )
+   , m_isLoaded( false )
+   , m_isBypassed( false )
+   , m_vstRate( 0 )
+   , m_bufferFrames( 0 )
+   , m_vstOut( 0 )
+   , m_vstIn( 0 )
+   , m_vst( nullptr )  // A real pointer to a C++ class
+   , m_framePos( 0 )   // ?
+   , m_timeInfo{}       // ?
+   , m_directoryMultiByte{} // needed for audioMasterGetDirectory
+{
+   //open( vstModulePath, hWndParent);
+   aboutToStart( 64, 2, 48000 );
+}
+
+Vst2xPlugin::~Vst2xPlugin()
+{
+   closePlugin();
+}
+
+
+void
+Vst2xPlugin::closeEditor()
+{
+   if ( m_editorWindow )               // Stop plugin
+   {                                   // Stop plugin
+      //m_editorWindow->enableClosing(); // Stop plugin
+      vstDispatch(effEditClose);        // Stop plugin
+      //m_editorWindow->close();         // Stop plugin
+      //delete m_editorWindow;           // Stop plugin
+      m_editorWindow = nullptr;        // Stop plugin
+   }
+}
+
+/*
+void
+Vst2xPlugin::resizeEditor( QRect const & pos )
+{
+   if ( m_editorWindow )
+   {
+      m_editorWindow->setMinimumSize( pos.width(), pos.height() );
+      m_editorWindow->setMaximumSize( pos.width(), pos.height() );
+      m_editorWindow->move( pos.x(), pos.y() );
+   }
+}
+
+Recti
+Vst2xPlugin::getEditorRect( uint64_t winHandle )
+{
+   if( !is_open() || !hasEditor() ) return false;
+   // dispatcher(effEditOpen, 0, 0, (void*)winHandle );
+
+   ERect* erc = nullptr;
+   dispatcher( effEditGetRect, 0, 0, &erc );
+   int x = erc->left;
+   int y = erc->top;
+   int w = erc->right - x;
+   int h = erc->bottom - y;
+}
+
+bool
+Vst2xPlugin::openEditor( uint64_t winHandle )
+{
+   if( !hasEditor() ) return false;
+   dispatcher(effEditOpen, 0, 0, (void*)winHandle );
+   // ERect* erc = nullptr;
+   // dispatcher( effEditGetRect, 0, 0, &erc );
+   // int x = erc->left;
+   // int y = erc->top;
+   // int w = erc->right - x;
+   // int h = erc->bottom - y;
+   // resizeEditor( QRect( x,y,w,h ) );
+   //ShowWindow( winHandle, SW_SHOW );
+}
+*/
+
+const char**
+Vst2xPlugin::getCapabilities() const
+{
+   static const char* hostCapabilities[] =
+   {
+      "sendVstEvents",
+      "sendVstMidiEvents",
+      "sizeWindow",
+      "startStopProcess",
+      "sendVstMidiEventFlagIsRealtime",
+      nullptr
+   };
+   return hostCapabilities;
+}
+
+bool
+Vst2xPlugin::openPlugin()
+{
+   if ( m_isLoaded )
+   {
+      std::wcout << "Force plugin close" << std::endl;
+      closePlugin();
+   }
+
+   if ( !de::FileSystem::existFile( m_uri ) )
+   {
+      std::wcout << "Not a file " << m_uri << std::endl;
+      return false;
+   }
+
+   // Plugin needs path/directory of itself
+   {
+      wchar_t buf[ MAX_PATH + 1 ] {};
+      wchar_t* namePtr = nullptr;
+      auto const r = GetFullPathName( m_uri.c_str(), _countof(buf), buf, &namePtr );
+      if ( r && namePtr )
+      {
+         *namePtr = 0;
+         char mbBuf[ _countof(buf) * 4 ] {};
+         if ( auto s = WideCharToMultiByte(CP_OEMCP, 0, buf, -1, mbBuf, sizeof(mbBuf), 0, 0) )
+         {
+            m_directoryMultiByte = mbBuf;
+         }
+      }
+   }
+
+   HMODULE dll = reinterpret_cast< HMODULE >( m_dllHandle );
+   dll = LoadLibrary( m_uri.c_str() );
+   if ( !dll )
+   {
+      std::wcout << "Can't open VST DLL " << m_uri << std::endl;
+      return false;
+   }
+
+   typedef AEffect* (VstEntryProc)(audioMasterCallback);
+   auto* fn_entryProc = reinterpret_cast< VstEntryProc* >( GetProcAddress(dll, "VSTPluginMain") );
+   if ( !fn_entryProc )
+   {
+      fn_entryProc = reinterpret_cast< VstEntryProc* >( GetProcAddress(dll, "main") );
+   }
+   if ( !fn_entryProc )
+   {
+      std::wcout << "No VST entry point found, " << m_uri << std::endl;
+      return false;
+   }
+
+   m_dllHandle = uint64_t( dll );
+   m_vst = fn_entryProc( vstHostCallback_static );
+   if ( !m_vst )
+   {
+      std::wcout << "Not a VST plugin I, " << m_uri << std::endl;
+      return false;
+   }
+
+   if ( m_vst->magic != kEffectMagic )
+   {
+      std::wcout << "Not a VST plugin with kEffectMagic, " << m_uri << std::endl;
+      return false;
+   }
+
+   m_name = de::FileSystem::fileBase( m_uri );
+   m_vst->user = this;
+   m_vstIn = m_vst->numInputs;
+   m_vstOut = m_vst->numOutputs;
+
+   std::wcout << "Open VST plugin '" << m_uri << "'" << std::endl;
+   std::cout << "VST directoryMB '" << m_directoryMultiByte << "'" << std::endl;
+   std::wcout << "VST plugin uses " << m_bufferFrames << " frames per channel." << std::endl;
+   std::wcout << "VST plugin has " << m_vstIn << " inputs." << std::endl;
+   std::wcout << "VST plugin has " << m_vstOut << " outputs." << std::endl;
+   std::wcout << "VST plugin can float replacing = " << getFlags( effFlagsCanReplacing ) << std::endl;
+   std::wcout << "VST plugin can double replacing = " << getFlags( effFlagsCanDoubleReplacing ) << std::endl;
+   std::wcout << "VST plugin has editor = " << getFlags( effFlagsHasEditor ) << std::endl;
+   std::wcout << "VST plugin has program chunks = " << getFlags( effFlagsProgramChunks ) << std::endl;
+
+   vstDispatch(effOpen);
+   aboutToStart( 64, 2, 48000 );
+
+//   vstDispatch(effSetSampleRate, 0, 0, 0, static_cast<float>(getSampleRate()));
+//   vstDispatch(effSetBlockSize, 0, getBlockSize());
+//   vstDispatch(effSetProcessPrecision, 0, kVstProcessPrecision32);
+//   vstDispatch(effMainsChanged, 0, 1);
+//   vstDispatch(effStartProcess);
+
+   // if( hasEditor() )
+   // {
+      // m_editorWindow = new GVstEditorWindow( nullptr );
+      // m_editorWindow->hide();
+      // connect( m_editorWindow, SIGNAL(closed()), this, SLOT(on_editorClosed()), Qt::QueuedConnection );
+      // vstDispatch(effEditOpen, 0, 0, (void*)m_editorWindow->winId() );
+      // ERect* erc = nullptr;
+      // vstDispatch(effEditGetRect, 0, 0, &erc);
+      // int x = erc->left;
+      // int y = erc->top;
+      // int w = erc->right - x;
+      // int h = erc->bottom - y;
+      // resizeEditor( QRect( x,y,w,h ) );
+      // m_editorWindow->show();
+      // m_editorWindow->raise();
+      // m_editorImage->setImage( m_editorWindow->grab().toImage().scaledToHeight( 128 ), true );
+      // m_editorImage->setImagePreserveAspectWoH( true );
+      // m_editorImage->show();
+      // //m_editorPixmap = m_editorWindow->grab().scaledToHeight( 64 );
+// //      m_loadButton->setIcon( QIcon( m_editorPixmap ) );
+// //      m_loadButton->setIconSize( m_editorPixmap.size() );
+// //      m_loadButton->setText("");
+      // //ShowWindow(m_editorWinHandle, SW_SHOW);
+   // }
+
+   if ( m_vstIn < 1 )
+   {
+      // emit addedSynth( this );
+   }
+
+   m_isLoaded = true;
+   m_isVstDirty = true;
+   return m_isLoaded;
+}
+
+
+
+void
+Vst2xPlugin::closePlugin()
+{
+   if ( m_isLoaded )
+   {
+      m_isBypassed = true;  // Set this first, so the audio callback does bypass this dsp element.
+      vstDispatch( effMainsChanged, 0, 0 );  // Stop plugin
+      vstDispatch( effStopProcess );         // Stop plugin
+
+      if ( hasEditor() )
+      {
+         //m_editorWindow->enableClosing();
+         vstDispatch( effEditClose );
+         //m_editorWindow->close();
+         //delete m_editorWindow;
+         //m_editorHandle = 0;
+      }                                   // Stop plugin
+
+      if ( m_editorWindow )
+      {
+         //m_editorWindow->enableClosing();
+         vstDispatch( effEditClose );
+         //m_editorWindow->close();
+         //delete m_editorWindow;
+         m_editorWindow = 0;
+      }
+
+      vstDispatch( effClose );               // Stop plugin
+      m_isLoaded = false;  // Set this first, so the audio callback does bypass this dsp element.
+   }
+
+   if ( m_dllHandle )                  // Close plugin
+   {
+      HMODULE hModule = reinterpret_cast< HMODULE >( m_dllHandle );
+      FreeLibrary(hModule);
+      m_dllHandle = 0;
+   }
+
+   m_vstIn = 0;                // Reset everything, except samplerate and bufferframes
+   m_vstOut = 0;
+   m_inputBuffer.clear();
+   m_inputHeads.clear();
+   m_outputBuffer.clear();
+   m_outputHeads.clear();
+   m_framePos = 0;
+   m_isBypassed = false;
+   m_isVstDirty = true;
+}
+
+void
+Vst2xPlugin::aboutToStart( uint32_t dstFrames, uint32_t dstChannels, uint32_t dstRate )
+{
+   if ( m_bufferFrames != dstFrames )
+   {
+      m_bufferFrames = dstFrames;
+      m_isVstDirty = true;
+   }
+
+   //m_vstOut = dstChannels;
+
+   if ( m_vstRate != dstRate )
+   {
+      m_vstRate = dstRate;
+      m_isVstDirty = true;
+   }
+
+   if ( m_vst && m_isVstDirty )
+   {
+      m_isVstDirty = false;
+
+      vstDispatch(effStopProcess);
+      vstDispatch(effMainsChanged, 0, 0);
+
+      // Prepare inputs ( only for effects/relay, not synths )
+      if ( m_vstIn < 1 )
+      {
+         m_inputBuffer.clear();
+         m_inputHeads.clear();
+      }
+      else
+      {
+         size_t inputSamples = m_vstIn * m_bufferFrames;
+         if ( inputSamples != m_inputBuffer.size() )
+         {
+            m_inputBuffer.resize( inputSamples );
+            for( size_t i = 0; i < m_vstIn; ++i )
+            {
+               m_inputHeads.push_back( &m_inputBuffer[ i * m_bufferFrames ] );
+            }
+         }
+      }
+
+      // Prepare outputs
+      if ( m_vstOut < 1 )
+      {
+         m_outputBuffer.clear();
+         m_outputHeads.clear();
+      }
+      else
+      {
+         size_t outputSamples = m_vstOut * m_bufferFrames;
+         if ( outputSamples != m_outputBuffer.size() )
+         {
+            m_outputBuffer.resize( outputSamples );
+            for( size_t i = 0; i < m_vstOut; ++i )
+            {
+               m_outputHeads.push_back( &m_outputBuffer[ i * m_bufferFrames ] );
+            }
+         }
+      }
+
+      vstDispatch(effSetSampleRate, 0, 0, 0, float( m_vstRate ) );
+      vstDispatch(effSetBlockSize, 0, m_bufferFrames);
+      vstDispatch(effSetProcessPrecision, 0, kVstProcessPrecision32);
+      vstDispatch(effMainsChanged, 0, 1);
+      vstDispatch(effStartProcess);
+   }
+
+}
+
+uint64_t
+Vst2xPlugin::readSamples( double pts, float* dst, uint32_t dstFrames, uint32_t dstChannels, uint32_t dstRate )
+{
+   uint64_t dstSamples = dstFrames * dstChannels;
+
+   // Handle bypass
+   if ( !m_isLoaded || m_isBypassed )
+   {
+      if ( m_inputSignal )
+      {
+         m_inputSignal->readSamples( pts, dst, dstFrames, dstChannels, dstRate );
+      }
+      else
+      {
+         DSP_FILLZERO( dst, dstSamples );
+      }
+      return dstSamples;
+   }
+
+   aboutToStart( dstFrames, dstChannels, dstRate );
+
+   // Handle effect
+   if ( m_vstIn > 0 )
+   {
+      if ( m_inputSignal )
+      {
+         m_inputSignal->readSamples( pts, dst, dstFrames, dstChannels, dstRate );
+      }
+      else
+      {
+         DSP_FILLZERO( dst, dstSamples );
+      }
+   }
+
+   if ( m_vstIn > 0 )
+   {
+      DSP_GET_CHANNEL( m_inputHeads[0], dstFrames, dst, dstFrames, 0, 2 );
+   }
+   if ( m_vstIn > 1 )
+   {
+      DSP_GET_CHANNEL( m_inputHeads[1], dstFrames, dst, dstFrames, 1, 2 );
+   }
+
+   processVstMidiEvents();
+
+   // VST plugin canReplaceFloat32:
+   m_vst->processReplacing( m_vst, m_inputHeads.data(), m_outputHeads.data(), dstFrames );
+   m_framePos += dstFrames;
+
+   // Copy VST plugin output to interleaved dst buffer ( probably slow!? )
+   auto pDst = dst;
+   for ( size_t i = 0; i < dstFrames; ++i )
+   {
+      for ( size_t c = 0; c < dstChannels; ++c )
+      {
+         auto & channelData = m_outputHeads[ c ];
+         *pDst++ = channelData[ i ];
+      }
+   }
+
+   return dstSamples;
+}
+
+intptr_t
+Vst2xPlugin::vstDispatch( int32_t opcode, int32_t index, intptr_t value, void *ptr, float opt ) const
+{
+   if ( !m_vst ) { DE_ERROR("No plugin, bad") return 0; }
+   return m_vst->dispatcher( m_vst, opcode, index, value, ptr, opt );
+}
+
+void
+Vst2xPlugin::sendNote( de::audio::Note const & note )
+{
+   int midiChannel = note.m_channel;
+   int noteNumber = note.m_midiNote;
+   int velocity = note.m_velocity;
+
+   VstMidiEvent e;
+   e.type        = kVstMidiType;
+   e.byteSize    = sizeof( VstMidiEvent );
+   e.flags       = kVstMidiEventIsRealtime;
+   e.midiData[0] = static_cast<char>(midiChannel + 0x90);
+   e.midiData[1] = static_cast<char>(noteNumber);
+   e.midiData[2] = static_cast<char>(velocity);
+
+   size_t n = 0;
+   if ( auto l = m_vstMidi.lock() )
+   {
+      m_vstMidi.events.push_back( e );
+      n = m_vstMidi.events.size();
+   }
+
+   DE_DEBUG("events(",n,"), channel(",midiChannel,"), note(", noteNumber,"), velocity(", velocity,")")
+}
+
+// This function is called from refillCallback() which is running in audio thread.
+void
+Vst2xPlugin::processVstMidiEvents()
+{
+   m_vstMidiEvents.clear();
+   if ( auto l = m_vstMidi.lock() )
+   {
+      std::swap( m_vstMidiEvents, m_vstMidi.events );
+      //m_vstMidi.events.clear();
+   }
+
+   if ( !m_vstMidiEvents.empty() )
+   {
+      auto const n = m_vstMidiEvents.size();
+      auto const byteCount = sizeof( VstEvents ) + sizeof( VstEvent* ) * n;
+      m_vstEventBuffer.resize( byteCount );
+      auto vstEvents = reinterpret_cast< VstEvents* >( m_vstEventBuffer.data() );
+      vstEvents->numEvents = n;
+      vstEvents->reserved = 0;
+      for ( size_t i = 0; i < n; ++i )
+      {
+         vstEvents->events[ i ] = reinterpret_cast< VstEvent* >( &m_vstMidiEvents[ i ] );
+      }
+      DE_ERROR("Dispatch MIDI n = ",n)
+      vstDispatch( effProcessEvents, 0, 0, vstEvents );
+   }
+}
+
+// static
+VstIntPtr
+Vst2xPlugin::vstHostCallback_static( AEffect* effect, VstInt32 opcode, VstInt32 index, VstIntPtr value, void *ptr, float opt )
+{
+   if ( effect && effect->user )
+   {
+      auto me = static_cast< Vst2xPlugin* >( effect->user );
+      return me->vstHostCallback( opcode, index, value, ptr, opt );
+   }
+
+   switch( opcode )
+   {
+      case audioMasterVersion:    return kVstVersion;
+      default:                    return 0;
+   }
+}
+
+VstIntPtr
+Vst2xPlugin::vstHostCallback(VstInt32 opcode, VstInt32 index, VstIntPtr value, void* ptr, float opt )
+{
+   DE_DEBUG("opcode(",opcode,"), index(",index,"), value(",value,"), ptr(",ptr,"), opt(",opt,")")
+
+   switch(opcode)
+   {
+      default:                                break;
+      case audioMasterVersion:                return kVstVersion;
+      case audioMasterCurrentId:              return m_vst->uniqueID;
+      case audioMasterGetSampleRate:          return m_vstRate;
+      case audioMasterGetBlockSize:           return m_bufferFrames;
+      case audioMasterGetCurrentProcessLevel: return kVstProcessLevelUnknown;
+      case audioMasterGetAutomationState:     return kVstAutomationOff;
+      case audioMasterGetLanguage:            return kVstLangEnglish;
+      case audioMasterGetVendorVersion:       return getVendorVersion();
+      case audioMasterGetVendorString:
+         strcpy_s(static_cast<char*>(ptr), kVstMaxVendorStrLen, getVendorString().c_str());
+         return 1;
+      case audioMasterGetProductString:
+         strcpy_s(static_cast<char*>(ptr), kVstMaxProductStrLen, getProductString().c_str());
+         return 1;
+      case audioMasterGetTime:
+         m_timeInfo.flags      = 0;
+         m_timeInfo.samplePos  = m_framePos;
+         m_timeInfo.sampleRate = m_vstRate;
+         //DE_DEBUG("audioMasterGetTime(",m_timeInfo.samplePos,")")
+         return reinterpret_cast< VstIntPtr >( &m_timeInfo );
+      case audioMasterGetDirectory:
+         return reinterpret_cast< VstIntPtr >( m_directoryMultiByte.c_str() );
+      case audioMasterIdle:
+         if ( m_editorWindow ) { vstDispatch(effEditIdle); } break;
+      case audioMasterSizeWindow:
+         {
+            int w = int( index );
+            int h = int( value );
+            DE_DEBUG("audioMasterSizeWindow(",w,",",h,")")
+            if ( m_editorWindow )
+            {
+               m_editorWindow->resize( w, h );
+            }
+         }
+         break;
+      case audioMasterCanDo:
+         for ( const char** pp = getCapabilities(); *pp; ++pp )
+         {
+            if ( strcmp(*pp, static_cast<const char*>(ptr)) == 0 )
+            {
+               return 1;
+            }
+         }
+         return 0;
+   }
+   return 0;
+}
+
+
+/*
+ *
+
+    unsigned threadFunc() {
+        ComInit comInit {};
+        const HANDLE events[2] = { hClose, hRefillEvent };
+        for(bool run = true; run; ) {
+            const auto r = WaitForMultipleObjects(_countof(events), events, FALSE, INFINITE);
+            if(WAIT_OBJECT_0 == r) {    // hClose
+                run = false;
+            } else if(WAIT_OBJECT_0+1 == r) {   // hRefillEvent
+                UINT32 c = 0;
+                audioClient->GetCurrentPadding(&c);
+
+                const auto a = bufferFrameCount - c;
+                float* data = nullptr;
+                audioRenderClient->GetBuffer(a, reinterpret_cast<BYTE**>(&data));
+
+                const auto r = refillFunc(data, a, mixFormat);
+                audioRenderClient->ReleaseBuffer(a, r ? 0 : AUDCLNT_BUFFERFLAGS_SILENT);
+            }
+        }
+        return 0;
+    }
+
+    HANDLE                  hThread { nullptr };
+    IMMDeviceEnumerator*    mmDeviceEnumerator { nullptr };
+    IMMDevice*              mmDevice { nullptr };
+    IAudioClient*           audioClient { nullptr };
+    IAudioRenderClient*     audioRenderClient { nullptr };
+    WAVEFORMATEX*           mixFormat { nullptr };
+    HANDLE                  hRefillEvent { nullptr };
+    HANDLE                  hClose { nullptr };
+    UINT32                  bufferFrameCount { 0 };
+    RefillFunc              refillFunc {};
+};
+
+
+// This function is called from Wasapi::threadFunc() which is running in audio thread.
+bool
+refillCallback(
+      VstPlugin& vstPlugin,
+      float* const data,
+      uint32_t availableFrameCount,
+      const WAVEFORMATEX* const mixFormat)
+{
+    vstPlugin.processEvents();
+
+    const auto nDstChannels = mixFormat->nChannels;
+    const auto nSrcChannels = vstPlugin.getChannelCount();
+    const auto vstSamplesPerBlock = vstPlugin.getBlockSize();
+
+    int ofs = 0;
+    while(availableFrameCount > 0) {
+        size_t outputFrameCount = 0;
+        float** vstOutput = vstPlugin.processAudio(availableFrameCount, outputFrameCount);
+
+        // VST vstOutput[][] format :
+        //  vstOutput[a][b]
+        //      channel = a % vstPlugin.getChannelCount()
+        //      frame   = b + floor(a/2) * vstPlugin.getBlockSize()
+
+        // wasapi data[] format :
+        //  data[x]
+        //      channel = x % mixFormat->nChannels
+        //      frame   = floor(x / mixFormat->nChannels);
+
+        const auto nFrame = outputFrameCount;
+        for(size_t iFrame = 0; iFrame < nFrame; ++iFrame) {
+            for(size_t iChannel = 0; iChannel < nDstChannels; ++iChannel) {
+                const int sChannel = iChannel % nSrcChannels;
+                const int vstOutputPage = (iFrame / vstSamplesPerBlock) * sChannel + sChannel;
+                const int vstOutputIndex = (iFrame % vstSamplesPerBlock);
+                const int wasapiWriteIndex = iFrame * nDstChannels + iChannel;
+                *(data + ofs + wasapiWriteIndex) = vstOutput[vstOutputPage][vstOutputIndex];
+            }
+        }
+
+        availableFrameCount -= nFrame;
+        ofs += nFrame * nDstChannels;
+    }
+    return true;
+}
+
+
+void mainLoop(const std::wstring& dllFilename)
+{
+    VstPlugin vstPlugin { dllFilename.c_str(), GetConsoleWindow() };
+
+    Wasapi wasapi { [&vstPlugin](float* const data, uint32_t availableFrameCount, const WAVEFORMATEX* const mixFormat) {
+        return refillCallback(vstPlugin, data, availableFrameCount, mixFormat);
+    }};
+
+    struct Key {
+        Key(int midiNote) : midiNote { midiNote } {}
+        int     midiNote {};
+        bool    status { false };
+    };
+
+    std::map<int, Key> keyMap {
+               {'2', {61}}, {'3', {63}},              {'5', {66}}, {'6', {68}}, {'7', {70}},
+        {'Q', {60}}, {'W', {62}}, {'E', {64}}, {'R', {65}}, {'T', {67}}, {'Y', {69}}, {'U', {71}}, {'I', {72}},
+
+               {'S', {49}}, {'D', {51}},              {'G', {54}}, {'H', {56}}, {'J', {58}},
+        {'Z', {48}}, {'X', {50}}, {'C', {52}}, {'V', {53}}, {'B', {55}}, {'N', {57}}, {'M', {59}}, {VK_OEM_COMMA, {60}},
+    };
+
+    for(bool run = true; run; WaitMessage()) {
+        MSG msg {};
+        while(BOOL b = PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {
+            if(b == -1) {
+                run = false;
+                break;
+            }
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
+
+        for(auto& e : keyMap) {
+            auto& key = e.second;
+            const auto on = (GetKeyState(e.first) & 0x8000) != 0;
+            if(key.status != on) {
+                key.status = on;
+                vstPlugin.sendMidiNote(0, key.midiNote, on, 100);
+            }
+        }
+    }
+}
+
+
+int main() {
+    volatile ComInit comInit;
+
+    const auto dllFilename = []() -> std::wstring {
+        wchar_t fn[MAX_PATH+1] {};
+        OPENFILENAME ofn { sizeof(ofn) };
+        ofn.lpstrFilter = L"VSTi DLL(*.dll)\0*.dll\0All Files(*.*)\0*.*\0\0";
+        ofn.lpstrFile   = fn;
+        ofn.nMaxFile    = _countof(fn);
+        ofn.lpstrTitle  = L"Select VST DLL";
+        ofn.Flags       = OFN_FILEMUSTEXIST | OFN_ENABLESIZING;
+        GetOpenFileName(&ofn);
+        return fn;
+    } ();
+
+    try {
+        mainLoop(dllFilename);
+    } catch(std::exception &e) {
+        std::cout << "Exception : " << e.what() << std::endl;
+    }
+}
+
+*/
+
+
+
+} // end namespace audio
+} // end namespace de

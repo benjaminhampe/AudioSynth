@@ -1,0 +1,70 @@
+/// (c) 2017 - 20180 Benjamin Hampe <benjaminhampe@gmx.de>
+
+#ifndef DE_LIVE_PLUGINMANAGER_HPP
+#define DE_LIVE_PLUGINMANAGER_HPP
+
+#include "PluginInfo.hpp"
+#include <QString>
+#include <QObject>
+#include <de/audio/plugin/IPlugin.hpp>
+
+namespace de {
+namespace audio {
+
+// ============================================================================
+struct PluginManager : public QObject
+// ============================================================================
+{
+   Q_OBJECT
+   DE_CREATE_LOGGER("PluginManager")
+   std::string m_uri;
+   std::vector< IPlugin* > m_plugins;
+public:
+   PluginManager();
+   ~PluginManager();
+
+//   int findId( int pluginId ) const
+//   {
+//      for ( size_t i = 0; i < m_plugins.size(); ++i )
+//      {
+//         auto p = m_plugins[ i ];
+//         if ( p && p->id() == pluginId ) return i;
+//      }
+//      return -1;
+//   }
+
+   int find( int pluginId ) const
+   {
+      for ( size_t i = 0; i < m_plugins.size(); ++i )
+      {
+         auto p = m_plugins[ i ];
+         if ( p && p->id() == pluginId ) return i;
+      }
+      return -1;
+   }
+
+signals:
+   void pluginCreated( int );
+   void pluginRemoved( int );
+
+public slots:
+   void clear();
+   void setUri( std::string const & uri ) { m_uri = uri; }
+   bool load();
+   bool save() const;
+
+   IPlugin* addPlugin( PluginInfo const & pluginInfo );
+   //IPlugin* addPlugin( std::wstring const & uri );
+
+   void removePlugin( IPlugin* plugin ) {}
+
+   void removePluginById( int pluginId ) {}
+
+};
+
+
+} // end namespace live
+} // end namespace de
+
+
+#endif

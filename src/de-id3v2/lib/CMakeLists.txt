@@ -1,0 +1,1 @@
+add_subdirectory(de-taglib-1.11.1)

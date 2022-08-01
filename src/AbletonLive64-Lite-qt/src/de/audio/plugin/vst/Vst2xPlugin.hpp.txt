@@ -1,0 +1,187 @@
+﻿#ifndef DE_AUDIO_VST2X_PLUGIN_HPP
+#define DE_AUDIO_VST2X_PLUGIN_HPP
+
+#include <cstdint>
+#include <sstream>
+#include <vector>
+#include <map>
+#include <functional>
+#include <algorithm>
+#include <memory>
+#include <mutex>
+#include <atomic>
+#include <thread>
+#include <iostream>
+
+//#pragma warning(push)
+//#pragma warning(disable : 4996)
+#include <de/audio/plugin/IPlugin.hpp>
+
+//#include <QRect>
+//#include <QFont5x8.hpp>
+//#include <QWidget>
+//#include <QImage>
+//#include <QDebug>
+
+#include <pluginterfaces/vst2.x/aeffectx.h>  // de_vst2sdk
+
+//#pragma warning(pop)
+
+namespace de {
+namespace audio {
+
+/*
+struct ComInit
+{
+   ComInit();
+   ~ComInit();
+};
+*/
+
+// ============================================================================
+class Vst2xPlugin : public IPlugin
+// ============================================================================
+{
+public:
+   Vst2xPlugin();
+   ~Vst2xPlugin();
+
+//   // Load PluginDll x64
+//   virtual PluginInfo const & getPluginInfo() const { return m_pluginInfo; }
+//   virtual void setPluginInfo( PluginInfo const & pluginInfo ) { m_pluginInfo = pluginInfo; }
+
+   int id() const override { return m_id; }
+   std::wstring const & getName() const override { return m_name; }
+   std::wstring const & getUri() const override { return m_uri; }
+
+   void setId( int id ) override { m_id = id; }
+   void setName( std::wstring const & name ) override { m_name = name; }
+   void setUri( std::wstring const & uri ) override { m_uri = uri; }
+   bool openPlugin() override;
+   void closePlugin() override;
+
+   // void resizeEditor( QRect const & pos );
+   void closeEditor();
+   // Recti getEditorRect( uint64_t winHandle );
+   // bool openEditor( uint64_t winHandle );
+
+   // Get PluginDll x64 infos
+   int getVendorVersion() const override { return 1; }
+   std::string getVendorString() override { return "Unknown Vendor"; }
+   std::string getProductString() override { return "Unknown Product"; }
+   int numPrograms() const { return m_vst ? m_vst->numPrograms : 0; }
+   int numParams() const { return m_vst ? m_vst->numParams : 0; }
+   int numInputs() const { return m_vst ? m_vst->numInputs : 0; }
+   int numOutputs() const { return m_vst ? m_vst->numOutputs : 0; }
+
+   bool hasEditor() const override { return getFlags(effFlagsHasEditor); }
+   bool isSynth() const override { return getFlags(effFlagsIsSynth); }
+
+   bool getFlags( int32_t m ) const { return m_vst ? ((m_vst->flags & m) == m) : false; }
+
+   uint32_t getSampleRate() const { return m_vstRate; }
+   uint64_t getFramePos() const { return m_framePos; }
+   uint64_t getBlockSize() const { return m_bufferFrames; }
+   const char** getCapabilities() const;
+
+   // void emit_addedSynth( IDspChainElement* );
+   // void emit_removedSynth( IDspChainElement* );
+
+   // IDspChainElement stuff
+   bool isBypassed() const override { return m_isBypassed; }
+   void setBypassed( bool enabled ) override { m_isBypassed = enabled; }
+
+   void clearInputSignals() { m_inputSignal = nullptr; }
+   void setInputSignal( int i, IDspChainElement* input ){ m_inputSignal = input; }
+   void aboutToStart( uint32_t dstFrames, uint32_t dstChannels, uint32_t dstRate ) override;
+   uint64_t readSamples( double pts, float* dst, uint32_t dstFrames, uint32_t dstChannels, uint32_t dstRate ) override;
+   void sendNote( Note const & note ) override;
+
+private:
+   static VstIntPtr
+   vstHostCallback_static( AEffect * effect,
+                           VstInt32 opcode,
+                           VstInt32 index,
+                           VstIntPtr value,
+                           void * ptr,
+                           float opt );
+
+   VstIntPtr
+   vstHostCallback( VstInt32 opcode,
+                    VstInt32 index,
+                    VstIntPtr value,
+                    void * ptr,
+                    float opt );
+
+   intptr_t
+   vstDispatch( int32_t opcode,
+                int32_t index = 0,
+                intptr_t value = 0,
+                void* ptr = nullptr,
+                float opt = 0.0f ) const;
+
+   // This function is called from refillCallback() which is running in audio thread.
+   void
+   processVstMidiEvents();
+
+
+   // This function is called from refillCallback() which is running in audio thread.
+//   float**
+//   processAudio( uint64_t frameCount, uint64_t & outputFrameCount );
+
+   DE_CREATE_LOGGER("Vst2xPlugin")
+   PluginInfo m_pluginInfo;
+
+   int m_id;
+   uint64_t m_dllHandle; // HMODULE
+   IPluginEditorWindow* m_editorWindow;
+   //uint64_t m_editorHandle; // HWND
+   IDspChainElement* m_inputSignal; // For effects
+
+   //int m_volume;
+   bool m_isLoaded;
+   bool m_isBypassed;
+   bool m_isVstDirty;   // needs update
+   // VST desc
+   uint32_t m_vstRate;     // rate in Hz
+   uint32_t m_bufferFrames;   // frames per channel
+   uint32_t m_vstOut; // >0 expected for all plugins, >2 will be limited to 2, =1 will be doubled to 2 (stereo).
+   uint32_t m_vstIn;  // = 0 for synths, >0 for all else effects
+   std::wstring m_uri; // Plugin file name
+   std::wstring m_name; // Plugin title name ( default: filebasename(uri) )
+
+   // Steinberg API
+   AEffect* m_vst;
+   std::atomic< uint64_t > m_framePos;
+   VstTimeInfo m_timeInfo;
+   std::string m_directoryMultiByte;
+
+   // VST seems to work channelwise / planar, not interleaved audio.
+   std::vector< float > m_outputBuffer;
+   std::vector< float* > m_outputHeads;
+   std::vector< float > m_inputBuffer;
+   std::vector< float* > m_inputHeads;
+   // VST midi event handling
+   std::vector< VstMidiEvent > m_vstMidiEvents;
+   std::vector< char > m_vstEventBuffer;
+   struct MidiEventQueue
+   {
+      std::unique_lock< std::mutex >
+      lock() const
+      {
+         return std::unique_lock<std::mutex>(m_mutex);
+      }
+
+      std::vector< VstMidiEvent > events;
+   private:
+      std::mutex mutable m_mutex;
+   };
+   MidiEventQueue m_vstMidi;
+
+};
+
+
+} // end namespace audio
+} // end namespace de
+
+#endif // G_LOPASS1_HPP

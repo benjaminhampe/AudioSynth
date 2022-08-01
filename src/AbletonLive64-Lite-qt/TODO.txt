@@ -1,0 +1,55 @@
+git diff G:/Projects/AudioSynth-qt-cmake-22.01/src/AbletonLive64-Lite-qt G:/Projects/AudioSynth-qt-cmake-22.05.23/src/AbletonLive64-Lite-qt
+
+
+git_diff
+G:/Projects/AudioSynth-qt-cmake-22.01/src/AbletonLive64-Lite-qt
+G:/Projects/AudioSynth-qt-cmake-22.05.23/src/AbletonLive64-Lite-qt
+
+LevelMeter für Session/Arrange
+PluginExplorer Titel höher
+PluginExplorer Titel Hintergrund länger
+MidiKeyboard braucht Schalter ( Long Repeat press event <-> No repeat )
+MidiKeyboard braucht PitchWheel und ModWheel
+MidiKeyboard braucht ContextMenu
+Plugin braucht ContextMenu
+ArrangeItem braucht ContextMenu
+
+
+Edit: C:/Users/firelogger/AppData/Roaming/Ableton64/Cache
+Edit: C:/Users/firelogger/AppData/Roaming/Ableton64/Recordings
+Edit: C:/_vst
+
+ ------------------------------------
+SetupDialog braucht: AudioOptions
+SetupDialog braucht: VST dirs
+Plug-In Sources ----------------------------------
+SetupDialog braucht: Rescan Plug-Ins      Btn: Rescan
+SetupDialog braucht: VST Plug-In Custom Folders
+
+Cache Directory (tmp_fast) ----------------------------------
+SetupDialog braucht: Cache Folders  Btn::Browse      Edit:Roaming/Ableton64/Cache
+SetupDialog braucht: Minimum Free Space      Edit:500.00 MB
+SetupDialog braucht: Maximum Cache Bool:On/Off      Edit:10.00 GB    btn:Clean
+
+
+SetupDialog braucht: DataDirs 
+SetupDialog braucht: FastStorageDir ( tmp_fast )
+
+Look and Feel ------------------------------------
+SetupDialog braucht: Combo Sprachenauswahl
+SetupDialog braucht: Bool FongFollowBehaviour ( Scroll, per Page )
+SetupDialog braucht: Bool HideLabels < Show ( yellow ), Hide ( orange/red ) >
+SetupDialog braucht: Bool AllowSleepMode
+SetupDialog braucht: Bool AllowMultipleInstances
+SetupDialog braucht: Bool PermanentScrubAreas
+SetupDialog braucht: Slider ZoomDisplay
+
+Colors ------------------------------------
+SetupDialog braucht: Combo Skinauswahl
+SetupDialog braucht: Bool AutoAssignClipColors
+SetupDialog braucht: Combo DefaultClipColor
+
+Plug-In Windows ------------------------------------
+SetupDialog braucht: Bool Multiple Plug-In Editor Windows
+SetupDialog braucht: Bool Auto-Hide Plug-In Editor Window
+SetupDialog braucht: Bool Auto-Open Plug-In Editor Window

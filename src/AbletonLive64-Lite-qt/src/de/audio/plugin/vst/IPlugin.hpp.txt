@@ -1,0 +1,150 @@
+﻿#ifndef DE_AUDIO_I_PLUGIN_HPP
+#define DE_AUDIO_I_PLUGIN_HPP
+
+#include <QWidget>
+#include <QImage>
+#include <QDebug>
+#include <cstdint>
+#include <sstream>
+#include <vector>
+#include <map>
+#include <functional>
+#include <algorithm>
+#include <memory>
+#include <mutex>
+#include <atomic>
+#include <thread>
+#include <iostream>
+
+#include <de/Recti.hpp>
+#include <de/audio/dsp/IDspChainElement.hpp>
+#include <de/audio/plugin/PluginInfo.hpp>
+
+namespace de {
+namespace audio {
+
+// ============================================================================
+struct IPluginEditorWindow
+// ============================================================================
+{
+   uint64_t m_windowHandle;
+   Recti m_rect;
+
+   IPluginEditorWindow() : m_windowHandle( 0 ) {}
+
+   virtual ~IPluginEditorWindow() = default;
+
+   virtual uint64_t getWindowHandle() const { return m_windowHandle; }
+
+   virtual Recti const & rect() const { return m_rect; }
+   virtual void resize( int w, int h ) { m_rect.w = w; m_rect.h = h; }
+
+   virtual void setVisible( bool visible ) {}
+   virtual void show() {}
+   virtual void hide() {}
+
+   virtual bool openEditor() { return true; }
+   virtual void closeEditor() {}
+};
+
+// ============================================================================
+struct IPlugin : public IDspChainElement
+// ============================================================================
+{
+   virtual ~IPlugin() = default;
+
+//   virtual PluginInfo const & getPluginInfo() const = 0;
+//   virtual void setPluginInfo( PluginInfo const & pluginInfo ) = 0;
+
+   virtual void setId( int id ) = 0;
+   virtual void setUri( std::wstring const & uri ) = 0;
+   virtual void setName( std::wstring const & name ) = 0;
+
+   virtual int id() const = 0;
+   virtual std::wstring const & getUri() const = 0;
+   virtual std::wstring const & getName() const = 0;
+
+   virtual bool hasEditor() const = 0;
+//   virtual bool getFlags( int32_t m ) const = 0;
+   //virtual bool isSynth() const = 0;
+
+   virtual int numPrograms() const = 0;
+   virtual int numParams() const = 0;
+   virtual int numInputs() const = 0;
+   virtual int numOutputs() const = 0;
+
+//   virtual void setUri( std::wstring const & uri ) = 0;
+//   virtual void setName( std::wstring const & name ) = 0;
+   virtual bool openPlugin() = 0;
+   virtual void closePlugin() = 0;
+
+   inline bool openPlugin( std::wstring const & uri )
+   {
+      setUri( uri );
+      return openPlugin();
+   }
+
+   // void closeEditor()
+   // {
+      // if ( m_editorWindow )               // Stop plugin
+      // {                                   // Stop plugin
+         // //m_editorWindow->enableClosing(); // Stop plugin
+         // vstDispatch(effEditClose);        // Stop plugin
+         // //m_editorWindow->close();         // Stop plugin
+         // //delete m_editorWindow;           // Stop plugin
+         // m_editorWindow = nullptr;        // Stop plugin
+      // }
+   // }
+   // void
+   // resizeEditor( QRect const & pos )
+   // {
+      // if ( m_editorWindow )
+      // {
+         // m_editorWindow->setMinimumSize( pos.width(), pos.height() );
+         // m_editorWindow->setMaximumSize( pos.width(), pos.height() );
+         // m_editorWindow->move( pos.x(), pos.y() );
+      // }
+   // }
+
+   // Recti
+   // getEditorRect( uint64_t winHandle )
+   // {
+      // if( !is_open() || !hasEditor() ) return false;
+      // // dispatcher(effEditOpen, 0, 0, (void*)winHandle );
+
+      // ERect* erc = nullptr;
+      // dispatcher( effEditGetRect, 0, 0, &erc );
+      // int x = erc->left;
+      // int y = erc->top;
+      // int w = erc->right - x;
+      // int h = erc->bottom - y;
+   // }
+
+   // bool
+   // openEditor( uint64_t winHandle )
+   // {
+      // if( !hasEditor() ) return false;
+      // dispatcher(effEditOpen, 0, 0, (void*)winHandle );
+      // // ERect* erc = nullptr;
+      // // dispatcher( effEditGetRect, 0, 0, &erc );
+      // // int x = erc->left;
+      // // int y = erc->top;
+      // // int w = erc->right - x;
+      // // int h = erc->bottom - y;
+      // // resizeEditor( QRect( x,y,w,h ) );
+      // //ShowWindow(winHandle, SW_SHOW);
+   // }
+
+
+   virtual int getVendorVersion() const { return 0; }
+   virtual std::string getVendorString() { return ""; }
+   virtual std::string getProductString() { return ""; }
+
+
+};
+
+
+} // end namespace audio
+} // end namespace de
+
+#endif // G_LOPASS1_HPP

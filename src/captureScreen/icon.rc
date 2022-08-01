@@ -1,0 +1,26 @@
+1 VERSIONINFO
+FILEVERSION     1,0,0,0
+PRODUCTVERSION  1,0,0,0
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "080904E4"
+    BEGIN
+      VALUE "CompanyName", "Ingenieur Beauro Benjamin Hampe"
+      VALUE "FileDescription", "Capture Screen using Win32 API ( copies bitmap to clipboard )"
+      VALUE "FileVersion", "1.0"
+      VALUE "InternalName", "Capture Screen"
+      VALUE "LegalCopyright", "Meins"
+      VALUE "OriginalFilename", "CaptureScreen.exe"
+      VALUE "ProductName", "Capture Screen"
+      VALUE "ProductVersion", "1.0"
+    END
+  END
+
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x809, 1252
+  END
+END
+
+IDI_ICON1   ICON  DISCARDABLE  "mspaint.ico"

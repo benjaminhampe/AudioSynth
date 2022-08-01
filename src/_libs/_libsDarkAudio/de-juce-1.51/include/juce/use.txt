@@ -1,0 +1,8 @@
+/*Important! By including this file you agree to release any code that uses
+JUCE (directly or indirectly) under the GNU GPL license, OR you must buy a 
+license from Julian Storer in order to use your product commercially. See: 
+http://rawmaterialsoftware.com for more details.*/
+
+#define DONT_SET_USING_JUCE_NAMESPACE 1
+#define JUCE_DONT_DEFINE_MACROS 1
+#include "../juce/juce_amalgamated.h"

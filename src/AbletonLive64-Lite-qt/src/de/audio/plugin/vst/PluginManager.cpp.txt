@@ -1,0 +1,157 @@
+#include "PluginManager.hpp"
+
+#include "App.hpp"
+
+#include "PluginDummy.hpp"
+
+namespace de {
+namespace audio {
+
+PluginManager::PluginManager()
+{
+
+}
+
+PluginManager::~PluginManager()
+{
+   clear();
+}
+
+void
+PluginManager::clear()
+{
+   for ( size_t i = 0; i < m_plugins.size(); ++i )
+   {
+      auto p = m_plugins[ i ];
+      if ( p ) delete p;
+   }
+   m_plugins.clear();
+}
+
+
+//IPlugin*
+//PluginManager::addPlugin( std::wstring const & uri )
+//{
+//   PluginInfo pluginInfo;
+//   pluginInfo.m_uri = uri;
+
+//   return addPlugin( pluginInfo );
+//}
+
+IPlugin*
+PluginManager::addPlugin( PluginInfo const & pluginInfo )
+{
+   DE_ERROR("Not implemented")
+
+   auto plugin = new PluginDummy();
+   plugin->setPluginInfo( pluginInfo );
+
+   if ( !plugin->openPlugin() )
+   {
+      DE_ERROR("Cant create plugin ", m_plugins.size() )
+      delete plugin;
+      return nullptr;
+   }
+
+   DE_ERROR("Created plugin ", m_plugins.size() )
+
+   m_plugins.emplace_back( plugin );
+   return plugin;
+}
+
+bool
+PluginManager::save() const
+{
+   dbRemoveFile( m_uri );
+
+   tinyxml2::XMLDocument doc;
+   tinyxml2::XMLElement* manager = doc.NewElement( "plugin-manager" );
+   manager->SetAttribute( "count", int( m_plugins.size() ) );
+
+   for ( auto & plugin : m_plugins )
+   {
+      if ( !plugin ) continue;
+      plugin->getPluginInfo().writeXML( doc, manager );
+   }
+
+   doc.InsertEndChild( manager );
+
+   auto e = doc.SaveFile( m_uri.c_str() );
+   if ( e != tinyxml2::XML_SUCCESS )
+   {
+      std::cout << "Cant save <network> xml " << m_uri << ", e = " << int(e) << std::endl;
+      return false;
+   }
+
+   std::cout <<"Saved <network> xml " << m_uri << std::endl;
+   return true;
+}
+
+bool
+PluginManager::load()
+{
+   tinyxml2::XMLDocument doc;
+   auto e = doc.LoadFile( m_uri.c_str() );
+   if ( e != tinyxml2::XML_SUCCESS )
+   {
+      std::cout << "Cant load <network> xml " << m_uri << std::endl;
+      return false;
+   }
+
+   tinyxml2::XMLElement* manager = doc.FirstChildElement( "plugin-manager" );
+   if ( !manager )
+   {
+      std::cout << "No <plugin-manager> tag in xml " << m_uri << std::endl;
+      return false;
+   }
+
+   int m_checkSum = manager->IntAttribute( "count" );
+
+   m_plugins.clear();
+
+   int k = 0;
+
+   // Read first child <PluginInfo> of parent <PluginInfoList>
+   tinyxml2::XMLElement* pluginNode = manager->FirstChildElement( "plugin" );
+   if ( !pluginNode )
+   {
+      std::cout << "No <plugin> in <plugin-manager> xml " << m_uri << std::endl;
+      return false;
+   }
+   else
+   {
+      // Read all next children <PluginInfo> of parent <PluginInfoList>
+      while ( pluginNode )
+      {
+         PluginInfo pluginInfo;
+         if ( pluginInfo.readXML( k, pluginNode ) )
+         {
+            auto plugin = addPlugin( pluginInfo );
+            if ( plugin )
+            {
+               m_plugins.emplace_back( plugin );
+            }
+            else
+            {
+               DE_ERROR("No plugin created")
+            }
+            k++;
+         }
+
+         pluginNode = pluginNode->NextSiblingElement( "plugin" );
+      }
+
+   }
+
+   std::cout <<"<plugin-manager> OK loaded. " << m_uri << std::endl;
+   //std::cout << "[loadXml] dir = " << m_vstDirMB << std::endl;
+   std::cout << "<plugin-manager> expect <plugin> tags = " << m_checkSum << std::endl;
+   std::cout << "<plugin-manager> loaded <plugin> tags = " << k << std::endl;
+
+   return true;
+}
+
+
+} // end namespace live
+} // end namespace de
+

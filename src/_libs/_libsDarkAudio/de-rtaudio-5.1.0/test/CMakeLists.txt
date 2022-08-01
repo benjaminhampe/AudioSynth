@@ -1,0 +1,3 @@
+add_subdirectory(test_rtaudio)
+add_subdirectory(test_rtaudio2)
+add_subdirectory(test_rtaudio3)

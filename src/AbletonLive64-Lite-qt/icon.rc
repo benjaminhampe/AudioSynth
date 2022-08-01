@@ -1,0 +1,26 @@
+1 VERSIONINFO
+FILEVERSION     1,0,0,0
+PRODUCTVERSION  1,0,0,0
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "080904E4"
+    BEGIN
+      VALUE "CompanyName", "Ingenieur Beauro Benjamin Hampe"
+      VALUE "FileDescription", "AbletonLive64 Lite DAW, plugin host VST24, MIDI editor."
+      VALUE "FileVersion", "1.0"
+      VALUE "InternalName", "AbletonLive64"
+      VALUE "LegalCopyright", "Meins"
+      VALUE "OriginalFilename", "AbletonLive64.exe"
+      VALUE "ProductName", "AbletonLive64"
+      VALUE "ProductVersion", "1.0"
+    END
+  END
+
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x809, 1252
+  END
+END
+
+IDI_ICON1   ICON  DISCARDABLE  "live.ico"

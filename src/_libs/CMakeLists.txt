@@ -1,0 +1,3 @@
+add_subdirectory(_libsDarkImage)
+add_subdirectory(_libsDarkAudio)
+add_subdirectory(_libsDarkGPU)

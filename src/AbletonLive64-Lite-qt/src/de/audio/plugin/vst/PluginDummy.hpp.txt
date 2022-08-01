@@ -1,0 +1,101 @@
+﻿#ifndef DE_AUDIO_PLUGIN_DUMMY_HPP
+#define DE_AUDIO_PLUGIN_DUMMY_HPP
+
+#include <cstdint>
+#include <sstream>
+#include <vector>
+#include <map>
+#include <functional>
+#include <algorithm>
+#include <memory>
+#include <mutex>
+#include <atomic>
+#include <thread>
+#include <iostream>
+
+//#pragma warning(push)
+//#pragma warning(disable : 4996)
+#include <de/audio/plugin/IPlugin.hpp>
+//#pragma warning(pop)
+
+namespace de {
+namespace audio {
+
+// ============================================================================
+class PluginDummy : public IPlugin
+// ============================================================================
+{
+   DE_CREATE_LOGGER("PluginDummy")
+   int m_id;
+   int m_volume;
+   IDspChainElement* m_inputSignal; // For effects
+   bool m_isBypassed;
+
+   PluginInfo m_pluginInfo;
+   std::wstring m_uri; // Plugin file name
+   std::wstring m_name; // Plugin title name ( default: filebasename(uri) )
+
+public:
+   PluginDummy();
+   ~PluginDummy() override;
+
+//   // Load PluginDll x64
+//   PluginInfo const & getPluginInfo() const override { return m_pluginInfo; }
+//   void setPluginInfo( PluginInfo const & pluginInfo ) override { m_pluginInfo = pluginInfo; }
+   int id() const override { return m_id; }
+   std::wstring const & getUri() const override { return m_uri; }
+   std::wstring const & getName() const override { return m_name; }
+
+   void setId( int id ) override { m_id = id; }
+   void setUri( std::wstring const & uri ) override { m_uri = uri; }
+   void setName( std::wstring const & name ) override { m_name = name; }
+
+   bool hasEditor() const override { return m_pluginInfo.hasEditor(); }
+   bool isSynth() const override { return m_pluginInfo.isSynth(); }
+
+   int numPrograms() const { return m_pluginInfo.numPrograms(); }
+   int numParams() const { return m_pluginInfo.numParams(); }
+   int numInputs() const { return m_pluginInfo.numInputs(); }
+   int numOutputs() const { return m_pluginInfo.numOutputs(); }
+//   bool getFlags( int32_t m ) const override { return m_vst ? ((m_vst->flags & m) == m) : false; }
+
+   //void setUri( std::wstring const & uri ) override { m_uri = uri; }
+   //void setName( std::wstring const & name ) override { m_name = name; }
+   bool openPlugin() override;
+   void closePlugin() override;
+
+   // void resizeEditor( QRect const & pos );
+   void closeEditor();
+   // Recti getEditorRect( uint64_t winHandle );
+   // bool openEditor( uint64_t winHandle );
+
+   // Get PluginDll x64 infos
+   int getVendorVersion() const override { return 1; }
+   std::string getVendorString() override { return "Unknown Vendor"; }
+   std::string getProductString() override { return "Unknown Product"; }
+   // uint32_t getSampleRate() const { return m_vstRate; }
+   // uint64_t getFramePos() const { return m_framePos; }
+   // uint64_t getBlockSize() const { return m_bufferFrames; }
+   // const char** getCapabilities() const;
+
+   // void emit_addedSynth( IDspChainElement* );
+   // void emit_removedSynth( IDspChainElement* );
+
+   // IDspChainElement stuff
+   bool isBypassed() const override { return m_isBypassed; }
+   void setBypassed( bool bypassed ) override { m_isBypassed = bypassed; }
+
+   //void clearInputSignals() { m_inputSignal = nullptr; }
+   //void setInputSignal( int i, IDspChainElement* input ){ m_inputSignal = input; }
+   void aboutToStart( uint32_t dstFrames, uint32_t dstChannels, uint32_t dstRate ) override;
+   uint64_t readSamples( double pts, float* dst, uint32_t dstFrames, uint32_t dstChannels, uint32_t dstRate ) override;
+
+   void sendNote( Note const & note ) override;
+
+};
+
+
+} // end namespace audio
+} // end namespace de
+
+#endif // G_LOPASS1_HPP

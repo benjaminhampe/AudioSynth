@@ -1,0 +1,3 @@
+#include <irrExt/Camera.hpp>
+
+

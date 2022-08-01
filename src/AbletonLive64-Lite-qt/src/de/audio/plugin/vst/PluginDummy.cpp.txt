@@ -1,0 +1,127 @@
+#include "PluginDummy.hpp"
+
+namespace de {
+namespace audio {
+
+PluginDummy::PluginDummy()
+   : m_id( -1 )
+   , m_volume( 100 )
+   , m_inputSignal( nullptr )
+   , m_isBypassed( false )
+{
+   //open( vstModulePath, hWndParent);
+   aboutToStart( 64, 2, 48000 );
+}
+
+PluginDummy::~PluginDummy()
+{
+   closePlugin();
+}
+
+void
+PluginDummy::closeEditor()
+{
+   // if ( m_editorWindow )               // Stop plugin
+   // {                                   // Stop plugin
+      // //m_editorWindow->enableClosing(); // Stop plugin
+      // vstDispatch(effEditClose);        // Stop plugin
+      // //m_editorWindow->close();         // Stop plugin
+      // //delete m_editorWindow;           // Stop plugin
+      // m_editorWindow = nullptr;        // Stop plugin
+   // }
+}
+
+/*
+void
+PluginDummy::resizeEditor( QRect const & pos )
+{
+   if ( m_editorWindow )
+   {
+      m_editorWindow->setMinimumSize( pos.width(), pos.height() );
+      m_editorWindow->setMaximumSize( pos.width(), pos.height() );
+      m_editorWindow->move( pos.x(), pos.y() );
+   }
+}
+
+Recti
+PluginDummy::getEditorRect( uint64_t winHandle )
+{
+   if( !is_open() || !hasEditor() ) return false;
+   // dispatcher(effEditOpen, 0, 0, (void*)winHandle );
+
+   ERect* erc = nullptr;
+   dispatcher( effEditGetRect, 0, 0, &erc );
+   int x = erc->left;
+   int y = erc->top;
+   int w = erc->right - x;
+   int h = erc->bottom - y;
+}
+
+bool
+PluginDummy::openEditor( uint64_t winHandle )
+{
+   if( !hasEditor() ) return false;
+   dispatcher(effEditOpen, 0, 0, (void*)winHandle );
+   // ERect* erc = nullptr;
+   // dispatcher( effEditGetRect, 0, 0, &erc );
+   // int x = erc->left;
+   // int y = erc->top;
+   // int w = erc->right - x;
+   // int h = erc->bottom - y;
+   // resizeEditor( QRect( x,y,w,h ) );
+   //ShowWindow( winHandle, SW_SHOW );
+}
+
+const char**
+PluginDummy::getCapabilities() const
+{
+   static const char* hostCapabilities[] =
+   {
+      "sendVstEvents",
+      "sendVstMidiEvents",
+      "sizeWindow",
+      "startStopProcess",
+      "sendVstMidiEventFlagIsRealtime",
+      nullptr
+   };
+   return hostCapabilities;
+}
+*/
+
+
+bool
+PluginDummy::openPlugin()
+{
+   return true;
+}
+
+void
+PluginDummy::closePlugin()
+{
+}
+
+void
+PluginDummy::aboutToStart( uint32_t dstFrames, uint32_t dstChannels, uint32_t dstRate )
+{
+
+}
+
+uint64_t
+PluginDummy::readSamples( double pts, float* dst, uint32_t dstFrames, uint32_t dstChannels, uint32_t dstRate )
+{
+   uint64_t dstSamples = dstFrames * dstChannels;
+   DSP_FILLZERO( dst, dstSamples );
+   return dstSamples;
+}
+
+void
+PluginDummy::sendNote( de::audio::Note const & note )
+{
+   int midiChannel = note.m_channel;
+   int noteNumber = note.m_midiNote;
+   int velocity = note.m_velocity;
+   DE_DEBUG("channel(",midiChannel,"), note(", noteNumber,"), velocity(", velocity,")")
+}
+
+} // end namespace audio
+} // end namespace de
