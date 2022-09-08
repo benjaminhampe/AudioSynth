@@ -116,7 +116,7 @@ bg( EConsoleColor consoleColor, bool bright = false )
 
    std::string s = "\033[";
    s += colorBG;
-   s+= "m";
+   s += "m";
    return s;
 }
 

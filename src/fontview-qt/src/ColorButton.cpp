@@ -48,8 +48,8 @@ inline void
 drawHLine( QImage & img, int x1, int x2, int y, QColor lineColor, bool blend = false )
 {
    if ( img.isNull() || img.width() < 1 || img.height() < 1 ) return;
-   if ( x1 > x2 ) std::swap( x1, x2 );
-   for ( int x = x1; x <= x2; ++x )
+   //if ( x1 > x2 ) { std::swap( x1, x2 ); }
+   for ( int x = std::min( x1, x2 ); x <= std::max( x1, x2 ); ++x )
    {
       setPixel( img, x, y, lineColor, blend );
    }
@@ -59,16 +59,16 @@ inline void
 drawVLine( QImage & img, int y1, int y2, int x, QColor lineColor, bool blend = false )
 {
    if ( img.isNull() || img.width() < 1 || img.height() < 1 ) return;
-   if ( y1 > y2 ) std::swap( y1, y2 );
-   for ( int y = y1; y <= y2; ++y )
+   //if ( y1 > y2 ) { std::swap( y1, y2 ); }
+   for ( int y = std::min( y1, y2 ); y <= std::max( y1, y2 ); ++y )
    {
       setPixel( img, x, y, lineColor, blend );
    }
 }
 
 inline void
-drawLineRect( QImage & img, 
-              int x, int y, int w, int h, 
+drawLineRect( QImage & img,
+              int x, int y, int w, int h,
               QColor lineColor, int lineWidth = 1, bool blend = false )
 {
    if ( img.isNull() || img.width() < 1 || img.height() < 1 ) return;
@@ -82,8 +82,8 @@ drawLineRect( QImage & img,
 }
 
 inline void
-drawFillRect( QImage & img, 
-              int x, int y, int w, int h, 
+drawFillRect( QImage & img,
+              int x, int y, int w, int h,
               QColor fillColor, bool blend = false )
 {
    if ( img.isNull() || img.width() < 1 || img.height() < 1 ) return;
@@ -98,8 +98,8 @@ drawFillRect( QImage & img,
 
 inline void
 drawRect( QImage & img,
-               int x, int y, int w, int h, 
-               QColor fillColor, 
+               int x, int y, int w, int h,
+               QColor fillColor,
                QColor lineColor, int lineWidth = 1, bool blend = false )
 {
    if ( fillColor.alpha() > 0 )
@@ -122,10 +122,10 @@ ColorButton::ColorButton( QString name, uint32_t colorRGBA, QWidget * parent )
    setColorRGBA( colorRGBA );
 }
 
-ColorButton::~ColorButton()
-{
+//ColorButton::~ColorButton()
+//{
 
-}
+//}
 
 
 void

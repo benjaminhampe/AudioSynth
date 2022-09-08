@@ -10,9 +10,9 @@
 int main( int argc, char** argv )
 //========================================================================
 {
-   std::cout << argv[ 0 ] << " by (c) 2022 by <benjaminhampe@gmx.de>";
+   std::cout << argv[ 0 ] << " by (c) 2022 by <benjaminhampe@gmx.de>\n";
 
    de::CaptureScreen::copyBitmapToClipboard();
-   
+
    return 0;
 }

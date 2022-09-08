@@ -12,7 +12,7 @@ class ColorButton : public QPushButton
    Q_OBJECT
 public:
    ColorButton( QString name, uint32_t colorRGBA, QWidget * parent = nullptr );
-   ~ColorButton() override;
+   //~ColorButton() override;
    QColor const & getColor() const { return m_Color; }
 signals:
    void fgcolorChanged( QColor );

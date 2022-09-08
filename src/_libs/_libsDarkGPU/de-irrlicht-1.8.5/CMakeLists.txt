@@ -14,28 +14,31 @@ else()
    # file(GLOB_RECURSE IRR_SOURCES "${IRR_SOURCE_DIR}/*.cpp")
 
    set(IRR_SOURCES_EXTERN
-      ${IRR_SOURCE_DIR}/zlib/adler32.c
-      ${IRR_SOURCE_DIR}/zlib/compress.c
-      ${IRR_SOURCE_DIR}/zlib/crc32.c
-      ${IRR_SOURCE_DIR}/zlib/deflate.c
-      ${IRR_SOURCE_DIR}/zlib/gzclose.c
-      ${IRR_SOURCE_DIR}/zlib/gzlib.c
-      ${IRR_SOURCE_DIR}/zlib/gzread.c
-      ${IRR_SOURCE_DIR}/zlib/gzwrite.c
-      ${IRR_SOURCE_DIR}/zlib/infback.c
-      ${IRR_SOURCE_DIR}/zlib/inffast.c
-      ${IRR_SOURCE_DIR}/zlib/inflate.c
-      ${IRR_SOURCE_DIR}/zlib/inftrees.c
-      ${IRR_SOURCE_DIR}/zlib/trees.c
-      ${IRR_SOURCE_DIR}/zlib/uncompr.c
-      ${IRR_SOURCE_DIR}/zlib/zutil.c
-      ${IRR_SOURCE_DIR}/bzip2/blocksort.c
-      ${IRR_SOURCE_DIR}/bzip2/bzcompress.c
-      ${IRR_SOURCE_DIR}/bzip2/bzlib.c
-      ${IRR_SOURCE_DIR}/bzip2/crctable.c
-      ${IRR_SOURCE_DIR}/bzip2/decompress.c
-      ${IRR_SOURCE_DIR}/bzip2/huffman.c
-      ${IRR_SOURCE_DIR}/bzip2/randtable.c
+      # links with de_z, commented out because of multiple definitions.
+#      ${IRR_SOURCE_DIR}/zlib/adler32.c
+#      ${IRR_SOURCE_DIR}/zlib/compress.c
+#      ${IRR_SOURCE_DIR}/zlib/crc32.c
+#      ${IRR_SOURCE_DIR}/zlib/deflate.c
+#      ${IRR_SOURCE_DIR}/zlib/gzclose.c
+#      ${IRR_SOURCE_DIR}/zlib/gzlib.c
+#      ${IRR_SOURCE_DIR}/zlib/gzread.c
+#      ${IRR_SOURCE_DIR}/zlib/gzwrite.c
+#      ${IRR_SOURCE_DIR}/zlib/infback.c
+#      ${IRR_SOURCE_DIR}/zlib/inffast.c
+#      ${IRR_SOURCE_DIR}/zlib/inflate.c
+#      ${IRR_SOURCE_DIR}/zlib/inftrees.c
+#      ${IRR_SOURCE_DIR}/zlib/trees.c
+#      ${IRR_SOURCE_DIR}/zlib/uncompr.c
+#      ${IRR_SOURCE_DIR}/zlib/zutil.c
+      # links with de_bzip2, commented out because of multiple definitions.
+#      ${IRR_SOURCE_DIR}/bzip2/blocksort.c
+#      ${IRR_SOURCE_DIR}/bzip2/bzcompress.c
+#      ${IRR_SOURCE_DIR}/bzip2/bzlib.c
+#      ${IRR_SOURCE_DIR}/bzip2/crctable.c
+#      ${IRR_SOURCE_DIR}/bzip2/decompress.c
+#      ${IRR_SOURCE_DIR}/bzip2/huffman.c
+#      ${IRR_SOURCE_DIR}/bzip2/randtable.c
+      #####
       # ${IRR_SOURCE_DIR}/bzip2/bzip2.c
       # ${IRR_SOURCE_DIR}/bzip2/bzip2recover.c
       # ${IRR_SOURCE_DIR}/bzip2/dlltest.c # main()

@@ -56,7 +56,7 @@ struct convert2mp3
       DecoderTools::initDecoder( ds );
       if ( !DecoderTools::openDecoder( ds, dbStr(loadUri), -1, true ) )
       {
-         DE_ERROR("No decoder open, ",loadUri)
+         DE_ERROR("No decoder open, ", dbStr(loadUri) )
          return false;
       }
 
