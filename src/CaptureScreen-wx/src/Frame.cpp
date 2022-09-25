@@ -7,11 +7,11 @@
 
 #include "Frame.h"
 #include "../res/resource.h"
-#include "xpm/desktop_64.xpm.h"
-#include "xpm/CaptureScreen_64.xpm.h"
-#include "xpm/cancel_64.xpm.h"
-#include "xpm/opt_64.xpm.h"
-#include "xpm/about_64.xpm.h"
+#include "res/xpm_desktop_64.h"
+#include "res/xpm_CaptureScreen_64.h"
+#include "res/xpm_cancel_64.h"
+#include "res/xpm_opt_64.h"
+#include "res/xpm_about_64.h"
 
 #ifdef WX_PRECOMP
     #include "wx_pch.h"

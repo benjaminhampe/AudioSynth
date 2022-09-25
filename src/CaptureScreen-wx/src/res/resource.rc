@@ -1,32 +1,13 @@
-
 //#include "wx/msw/wx.rc"
 #include <windows.h>
-
 #include "resource.h"
 
-aaaa ICON "CaptureScreen.ico"
-// Win32 application icon.
-/*
-IDI_APPICON ICON  DISCARDABLE  "CaptureScreen.ico"
-*/
+// Application icon(s)
+aaaa ICON "../../../../benni.ico"
+//IDI_APPICON ICON  DISCARDABLE  "benni.ico"
 
-
-/*
-// Our main menu.
-IDR_MAINMENU MENU
-BEGIN
-  POPUP "&File"
-  BEGIN
-    MENUITEM "E&xit",                  ID_FILE_EXIT
-  END
-  POPUP "&Help"
-  BEGIN
-    MENUITEM "&About",                 ID_HELP_ABOUT
-  END
-END
-*/
-// Application manifest.
-CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "CaptureScreen.manifest"
+// Application manifest for DPI awareness (xml)!
+CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "app.manifest"
 
 1 VERSIONINFO
 FILEVERSION     1,0,0,0
@@ -54,6 +35,19 @@ BEGIN
 END
 
 /*
+// Our main menu.
+IDR_MAINMENU MENU
+BEGIN
+  POPUP "&File"
+  BEGIN
+    MENUITEM "E&xit",                  ID_FILE_EXIT
+  END
+  POPUP "&Help"
+  BEGIN
+    MENUITEM "&About",                 ID_HELP_ABOUT
+  END
+END
+
 // Executable version information.
 VS_VERSION_INFO    VERSIONINFO
 FILEVERSION        1,0,0,0
