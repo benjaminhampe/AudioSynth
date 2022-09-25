@@ -161,10 +161,18 @@ ImageWriterXPM::save( Image const & img, std::string const & uri, uint32_t param
 
    std::stringstream s;
    s <<
-   "// XPM-Header\n"
-   "// URI = " << uri << "\n"
-   "// ValidChars = " << valid_chars.size() << "\n"
-   "static std::vector< std::string > const " << baseName << "_xpm {\n"
+   "/* XPM-Header */\n"
+   "/* URI = " << uri << " */\n"
+   "/* ValidChars = " << valid_chars.size() << "*/\n"
+   "/* Width in [px] = " << w << "*/\n"
+   "/* Height in [px] = " << h << "*/\n"
+   "/* NumColors = " << colors.size() << "*/\n"
+   "/* CharsPerColor = " << digitCount << "*/\n"
+   "/* Encoded by ImageWriterXPM.cpp from libDarkImage */\n"
+   "/* Author: Benjamin Hampe <benjaminhampe@gmx.de> */\n"
+   "/* Whats special about these: Decoding and Encoding are much faster than IrfanView! */\n"
+   //"static std::vector< std::string > const " << baseName << "_xpm {\n"
+   "static const char * const " << baseName << "_xpm[] = {\n"
 
    "\""<<w<<" "<<h<<" "<<
 #if 0

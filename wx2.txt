@@ -1,0 +1,153 @@
+$ ./configure --with-msw --enable-plugins --disable-shared --enable-stl --build=x86_64-pc-mingw64 --host=x86_64-pc-mingw64
+
+
+--enable-plugins --disable-shared --enable-stl --enable-std_containers --enable-std_iostreams --enable-std_string_conv_in_wxstring
+--disable-unicode 
+--disable-visibility 
+--disable-tls 
+--enable-mslu
+--enable-no_rtti
+--enable-no_exceptions
+--enable-permissive
+--enable-intl --enable-protocols --enable-ftp --enable-http --enable-fileproto --enable-sockets --enable-ipv6 --enable-ole
+--enable-dataobj --enable-ipc --enable-baseevtloop --enable-epollloop --enable-selectloop --enable-any --enable-arcstream --enable-base64 --enable-backtrace
+--enable-cmdline --enable-datetime --enable-debugreport --enable-dialupman --enable-dynlib --enable-dynamicloader --enable-exceptions --enable-ffile
+--enable-file --enable-filehistory --enable-filesystem --enable-fontenum --enable-fontmap --enable-fs_archive --enable-fs_inet --enable-fs_zip --enable-fsvolume
+--enable-fswatcher --enable-geometry --enable-log --enable-longlong --enable-mimetype --enable-printfposparam --enable-snglinst --enable-sound --enable-stdpaths
+--enable-stopwatch --enable-streams --enable-sysoptions --enable-tarstream --enable-textbuf --enable-textfile --enable-timer --enable-variant --enable-zipstream
+--enable-url --enable-protocol --enable-protocol-http --enable-protocol-ftp --enable-protocol-file --enable-threads --enable-iniconf --enable-regkey --enable-docview
+--enable-help --enable-mshtmlhelp --enable-html --enable-htmlhelp --enable-xrc --enable-aui --enable-propgrid --enable-ribbon --enable-stc --enable-constraints
+--enable-loggui --enable-logwin --enable-logdialog --enable-mdi --enable-mdidoc --enable-mediactrl
+--enable-richtext --enable-printarch --enable-svg --enable-webview
+--enable-graphics_ctx
+--enable-clipboard
+--enable-dnd
+--enable-markup         support wxControl::SetLabelMarkup
+--enable-accel          use accelerators
+--enable-animatectrl    use wxAnimationCtrl class
+--enable-bannerwindow   use wxBannerWindow class
+--enable-artstd         use standard XPM icons in wxArtProvider
+--enable-bmpbutton      use wxBitmapButton class
+--enable-bmpcombobox    use wxBitmapComboBox class
+--enable-button         use wxButton class
+--enable-calendar       use wxCalendarCtrl class
+--enable-caret          use wxCaret class
+--enable-checkbox       use wxCheckBox class
+--enable-checklst       use wxCheckListBox (listbox with checkboxes) class
+--enable-choice         use wxChoice class
+--enable-choicebook     use wxChoicebook class
+--enable-collpane       use wxCollapsiblePane class
+--enable-colourpicker   use wxColourPickerCtrl class
+--enable-combobox       use wxComboBox class
+--enable-comboctrl      use wxComboCtrl class
+--enable-commandlinkbutton      use wxCommmandLinkButton class
+--enable-dataviewctrl   use wxDataViewCtrl class
+--enable-datepick       use wxDatePickerCtrl class
+--enable-detect_sm      use code to detect X11 session manager
+--enable-dirpicker      use wxDirPickerCtrl class
+--enable-display        use wxDisplay class
+--enable-editablebox    use wxEditableListBox class
+--enable-filectrl       use wxFileCtrl class
+--enable-filepicker     use wxFilePickerCtrl class
+--enable-fontpicker     use wxFontPickerCtrl class
+--enable-gauge          use wxGauge class
+--enable-grid           use wxGrid class
+--enable-headerctrl     use wxHeaderCtrl class
+--enable-hyperlink      use wxHyperlinkCtrl class
+--enable-imaglist       use wxImageList class
+--enable-infobar        use wxInfoBar class
+--enable-listbook       use wxListbook class
+--enable-listbox        use wxListBox class
+--enable-listctrl       use wxListCtrl class
+--enable-notebook       use wxNotebook class
+--enable-notifmsg       use wxNotificationMessage class
+--enable-odcombobox     use wxOwnerDrawnComboBox class
+--enable-popupwin       use wxPopUpWindow class
+--enable-prefseditor    use wxPreferencesEditor class
+--enable-radiobox       use wxRadioBox class
+--enable-radiobtn       use wxRadioButton class
+--enable-richmsgdlg     use wxRichMessageDialog class
+--enable-richtooltip    use wxRichToolTip class
+--enable-rearrangectrl  use wxRearrangeList/Ctrl/Dialog
+--enable-sash           use wxSashWindow class
+--enable-scrollbar      use wxScrollBar class and scrollable windows
+--enable-searchctrl     use wxSearchCtrl class
+--enable-slider         use wxSlider class
+--enable-spinbtn        use wxSpinButton class
+--enable-spinctrl       use wxSpinCtrl class
+--enable-splitter       use wxSplitterWindow class
+--enable-statbmp        use wxStaticBitmap class
+--enable-statbox        use wxStaticBox class
+--enable-statline       use wxStaticLine class
+--enable-stattext       use wxStaticText class
+--enable-statusbar      use wxStatusBar class
+--enable-taskbaricon    use wxTaskBarIcon class
+--enable-tbarnative     use native wxToolBar class
+--enable-textctrl       use wxTextCtrl class
+--enable-timepick       use wxTimePickerCtrl class
+--enable-tipwindow      use wxTipWindow class
+--enable-togglebtn      use wxToggleButton class
+--enable-toolbar        use wxToolBar class
+--enable-toolbook       use wxToolbook class
+--enable-treebook       use wxTreebook class
+--enable-treectrl       use wxTreeCtrl class
+--enable-treelist       use wxTreeListCtrl class
+--enable-commondlg      use all common dialogs
+--enable-aboutdlg       use wxAboutBox
+--enable-choicedlg      use wxChoiceDialog
+--enable-coldlg         use wxColourDialog
+--enable-filedlg        use wxFileDialog
+--enable-finddlg        use wxFindReplaceDialog
+--enable-fontdlg        use wxFontDialog
+--enable-dirdlg         use wxDirDialog
+--enable-msgdlg         use wxMessageDialog
+--enable-numberdlg      use wxNumberEntryDialog
+--enable-splash         use wxSplashScreen
+--enable-textdlg        use wxTextDialog
+--enable-tipdlg         use startup tips
+--enable-progressdlg    use wxProgressDialog
+--enable-wizarddlg      use wxWizard
+--enable-menus          use wxMenu/wxMenuBar/wxMenuItem classes
+--enable-miniframe      use wxMiniFrame class
+--enable-tooltips       use wxToolTip class
+--enable-splines        use spline drawing code
+--enable-mousewheel     use mousewheel
+--enable-validators     use wxValidator and derived classes
+--enable-busyinfo       use wxBusyInfo
+--enable-hotkey         use wxWindow::RegisterHotKey()
+--enable-joystick       use wxJoystick
+--enable-metafiles      use wxMetaFile
+--enable-dragimage      use wxDragImage
+--enable-accessibility  enable accessibility support
+--enable-uiactionsim    use wxUIActionSimulator (experimental)
+--enable-dctransform    use wxDC::SetTransformMatrix and related
+--enable-webviewwebkit  use wxWebView WebKit backend
+--enable-palette        use wxPalette class
+--enable-image          use wxImage class
+--enable-gif            use gif images (GIF file format)
+--enable-pcx            use pcx images (PCX file format)
+--enable-tga            use tga images (TGA file format)
+--enable-iff            use iff images (IFF file format)
+--enable-pnm            use pnm images (PNM file format)
+--enable-xpm            use xpm images (XPM file format)
+--enable-ico_cur        use Windows ICO and CUR formats
+  
+
+--enable-utf8 --enable-utf8only
+--enable-gstreamer8     force GStreamer 0.8 instead of 0.10 with the wxMediaCtrl class on unix
+--enable-postscript     use wxPostscriptDC device context (default for gtk+)
+--enable-webkit         use wxWebKitCtrl (Mac-only, use wxWebView instead)
+  --disable-qtkit         force AVFoundation instead of QTKit (requires OS X 10.7+)
+  --disable-controls      disable compilation of all standard controls
+  --enable-arttango       use Tango icons in wxArtProvider
+  --enable-dccache        cache temporary wxDC objects (Win32 only)
+  --enable-ps-in-msw      use PS printing in wxMSW (Win32 only)
+  --enable-ownerdrawn     use owner drawn controls (Win32 and OS/2 only)
+  --enable-uxtheme        enable support for Windows XP themed look (Win32 only)
+  --enable-wxdib          use wxDIB class (Win32 only)
+  --enable-webviewie      use wxWebView IE backend (Win32 only)
+  --enable-autoidman      use automatic ids management
+  --disable-largefile     omit support for large files
+  --disable-gtktest       do not try to compile and run a test GTK+ program
+  --disable-gtktest       Do not try to compile and run a test GTK program
+  --disable-sdltest       Do not try to compile and run a test SDL program

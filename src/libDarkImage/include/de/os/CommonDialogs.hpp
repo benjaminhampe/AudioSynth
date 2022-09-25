@@ -53,6 +53,16 @@ dbSaveFileDlg(
    std::string initDir = "",
    std::string initFileName = "Untitled.txt", bool newui = true );
 
+std::wstring
+dbSaveFileDlgW( std::wstring caption = L"Save file dialog",
+                std::wstring filter = L"All files (*.*)|*.*",
+                std::wstring initDir = L"",
+                std::wstring initFileName = L"Untitled",
+                bool newui = true,
+                int x = -1,
+                int y = -1,
+                int w = -1,
+                int h = -1 );
 /*
 
 uint32_t

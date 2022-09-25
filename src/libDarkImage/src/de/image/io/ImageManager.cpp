@@ -1,5 +1,13 @@
 #include <de/image/io/ImageManager.hpp>
 
+// *.ico, *.cur
+#ifdef DE_IMAGE_READER_ICO_ENABLED
+   #include <de/image/io/ICO/ImageReaderICO.hpp>
+#endif
+#ifdef DE_IMAGE_WRITER_ICO_ENABLED
+   #include <de/image/io/ICO/ImageWriterICO.hpp>
+#endif
+
 // *.bmp
 #ifdef DE_IMAGE_READER_BMP_ENABLED
    #include <de/image/io/BMP/ImageReaderBMP.hpp>
@@ -96,6 +104,13 @@ namespace de {
 
 ImageManager::ImageManager()
 {
+#ifdef DE_IMAGE_READER_ICO_ENABLED
+   m_Reader.push_back( new image::ImageReaderICO );
+#endif
+#ifdef DE_IMAGE_WRITER_ICO_ENABLED
+   m_Writer.push_back( new image::ImageWriterICO );
+#endif
+
 #ifdef DE_IMAGE_READER_BMP_ENABLED
    m_Reader.push_back( new image::ImageReaderBMP );
 #endif

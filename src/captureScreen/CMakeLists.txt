@@ -21,7 +21,7 @@ else()
 
    set(APP_SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/src)
    file( GLOB_RECURSE APP_SOURCES "${APP_SOURCE_DIR}/*.[h,c]pp")
-   list(APPEND APP_SOURCES ${CMAKE_CURRENT_LIST_DIR}/icon.rc)
+   list(APPEND APP_SOURCES ${CMAKE_CURRENT_LIST_DIR}/res/resource.rc)
 
 # Begin QtSDK
    set(CMAKE_AUTOMOC ON)
@@ -74,6 +74,7 @@ else()
 
    # target_sources(${APP_NAME} PRIVATE ${APP_SOURCES})
    target_compile_options(${APP_NAME} PUBLIC -Wno-deprecated-declarations)
+   target_link_options(${APP_NAME} PRIVATE -mwindows)
 
    if (WIN32)  # on Windows:
       target_link_libraries(${APP_NAME} PRIVATE comctl32 user32 gdi32 kernel32)
@@ -86,6 +87,6 @@ else()
    # target_link_libraries(${APP_NAME} PRIVATE m)          # Math
 
    # target_link_libraries(${APP_NAME} PRIVATE Qt5::Widgets)
-   # target_link_libraries(${APP_NAME} PRIVATE DarkImage)
+   target_link_libraries(${APP_NAME} PRIVATE DarkImage)
 
 endif()

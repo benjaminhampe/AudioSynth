@@ -121,12 +121,12 @@ ImageWriterTGA::save( Image const & img, std::string const & uri, uint32_t quali
    footer.DeveloperOffset = 0;
    ::strncpy( footer.Signature, "TRUEVISION-XFILE.", 18 );
 
-   expectBytes = sizeof( header ); // used more than once
+   expectBytes = sizeof( footer ); // used more than once
    resultBytes = ::fwrite( &footer, 1, sizeof( footer ), file );
    if ( expectBytes != resultBytes )
    {
-      DE_ERROR("Expected sizes differ 2.")
-      return false;
+      DE_ERROR("ExpectBytes(",expectBytes,") differs from WrittenBytes(",resultBytes,")")
+      //return false;
    }
 
    ::fclose( file );

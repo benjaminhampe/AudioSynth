@@ -157,25 +157,128 @@ struct Binary
       return true;
    }
 
-   uint64_t
-   read( void* dst, uint64_t byteCount )
+   uint8_t
+   readU8()
    {
-      if ( !m_Ptr || m_Avail == 0 )
+      if ( !m_Ptr || m_Avail < 1 )
       {
          DE_DEBUG("EOF")
          return 0;
       }
 
-      if ( byteCount > m_Avail )
+      uint8_t byte = *(m_Ptr + m_Index);
+      m_Index += 1;
+      m_Avail -= 1;
+      return byte;
+   }
+
+   uint16_t
+   readU16_lsb()
+   {
+      if ( !m_Ptr || m_Avail < 2 )
       {
-         //DE_DEBUG("LAST CHUNK byteCount(",byteCount,") > m_Avail(",m_Avail,")")
-         auto retVal = m_Avail;
-         m_Index = m_Count - 1 - m_Avail;
-         ::memcpy( dst, m_Ptr + m_Index, m_Avail );
-         m_Avail = 0;
-         m_Index = 0;
-         return retVal;
+         DE_DEBUG("EOF")
+         return 0;
       }
+
+      uint8_t const * p = m_Ptr + m_Index;
+      uint8_t a = *p;
+      uint8_t b = *(p + 1);
+      m_Index += 2;
+      m_Avail -= 2;
+      return size_t( a ) | ( size_t( b ) << 8 );
+   }
+
+   uint32_t
+   readU32_lsb()
+   {
+      if ( !m_Ptr || m_Avail < 4 )
+      {
+         DE_DEBUG("EOF")
+         return 0;
+      }
+
+      uint8_t const * p = m_Ptr + m_Index;
+      uint8_t a = *p;
+      uint8_t b = *(p + 1);
+      uint8_t c = *(p + 2);
+      uint8_t d = *(p + 3);
+      m_Index += 4;
+      m_Avail -= 4;
+      return size_t( a ) | ( size_t( b ) << 8 ) | ( size_t( c ) << 16 ) | ( size_t( d ) << 24 );
+
+//      uint8_t a = readU8();
+//      uint8_t b = readU8();
+//      uint8_t c = readU8();
+//      uint8_t d = readU8();
+//      return size_t( a ) | ( size_t( b ) << 8 ) | ( size_t( c ) << 16 ) | ( size_t( d ) << 24 );
+   }
+
+   uint16_t
+   readU16_msb()
+   {
+      if ( !m_Ptr || m_Avail < 2 )
+      {
+         DE_DEBUG("EOF")
+         return 0;
+      }
+
+      uint8_t const * p = m_Ptr + m_Index;
+      uint8_t a = *p;
+      uint8_t b = *(p + 1);
+      m_Index += 2;
+      m_Avail -= 2;
+      return size_t( b ) | ( size_t( a ) << 8 );
+
+//      uint8_t a = readU8();
+//      uint8_t b = readU8();
+//      return size_t( b ) | ( size_t( a ) << 8 );
+   }
+
+   uint32_t
+   readU32_msb()
+   {
+      if ( !m_Ptr || m_Avail < 4 )
+      {
+         DE_DEBUG("EOF")
+         return 0;
+      }
+
+      uint8_t const * p = m_Ptr + m_Index;
+      uint8_t a = *p;
+      uint8_t b = *(p + 1);
+      uint8_t c = *(p + 2);
+      uint8_t d = *(p + 3);
+      m_Index += 4;
+      m_Avail -= 4;
+      return size_t( d ) | ( size_t( c ) << 8 ) | ( size_t( b ) << 16 ) | ( size_t( a ) << 24 );
+
+//      uint8_t a = readU8();
+//      uint8_t b = readU8();
+//      uint8_t c = readU8();
+//      uint8_t d = readU8();
+//      return size_t( d ) | ( size_t( c ) << 8 ) | ( size_t( b ) << 16 ) | ( size_t( a ) << 24 );
+   }
+
+   uint64_t
+   read( void* dst, uint64_t byteCount )
+   {
+      if ( !m_Ptr || m_Avail < byteCount )
+      {
+         DE_DEBUG("EOF")
+         return 0;
+      }
+
+//      if ( byteCount > m_Avail )
+//      {
+//         //DE_DEBUG("LAST CHUNK byteCount(",byteCount,") > m_Avail(",m_Avail,")")
+//         auto retVal = m_Avail;
+//         m_Index = m_Count - 1 - m_Avail;
+//         ::memcpy( dst, m_Ptr + m_Index, m_Avail );
+//         m_Avail = 0;
+//         m_Index = 0;
+//         return retVal;
+//      }
 
       ::memcpy( dst, m_Ptr + m_Index, byteCount );
       m_Index += byteCount;

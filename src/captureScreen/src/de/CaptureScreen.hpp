@@ -9,11 +9,16 @@
 #include <sstream>
 #include <fstream>
 
+#include <DarkImage.hpp>
+
 namespace de {
 
    struct CaptureScreen
    {
-      static void 
+      static de::Image
+      createImageFromDesktop();
+
+      static void
       copyBitmapToClipboard();
    };
 
